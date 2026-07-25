@@ -1,4 +1,4 @@
-﻿## HashFileContextMenu
+## HashFileContextMenu
 
 ### How to install and use
 
@@ -43,5 +43,7 @@
 #### To-Do
 
 ---
+
+1. Add option for "Forensic Verification" that will automatically store the SHA-256 and the MD5 has values in a single verification file.
 
 1. Add ability for user to choose which text editor to associate with the new file extensions (e.g., Notepad++, Notepad, Wordpad, VSCode...).
