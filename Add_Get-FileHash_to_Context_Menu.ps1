@@ -276,14 +276,15 @@ function Add-FileExtAssociation {
     #>
     [CmdletBinding()]
     begin {
-        Write-Host "[-] Configuring Notepad++ File Associations..." -ForegroundColor Green
+        Write-Host "[-] Configuring Notepad++ file associations..." -ForegroundColor Green
 
         # Target hash extensions
         $Extensions = @( ".MD5", ".SHA1", ".SHA256", ".SHA512" )
 
         # Establish a unique ProgID specific to Notepad++ for these types
         $ProgId = "Notepad++LogFile"
-
+    }
+    process {
         # Detect the installation path of Notepad++ from the registry dynamically
         # Checks both 64-bit and 32-bit install vectors automatically
         $NppPath = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe" -ErrorAction SilentlyContinue).'(default)'
@@ -316,8 +317,6 @@ function Add-FileExtAssociation {
                 "" = ("String", "`"$NppPath`" `"%1`"")
             }
         }
-    }
-    process {
         $RegistryHive = [Microsoft.Win32.Registry]::LocalMachine
 
         # Deploy the core application execution target maps
