@@ -1,12 +1,14 @@
-# DLU : 12-Jun-2026
+# DLU : 25-Jul-2026
 
 Param (
-    [Parameter(Position = 0, Mandatory = $true)]
-    [string]$input_file_path,
+    [Parameter(Position = 0,
+               Mandatory = $true)]
+    [string]$InputFilePath,
 
-    [Parameter(Position = 1, Mandatory = $true)]
+    [Parameter(Position = 1,
+               Mandatory = $true)]
     [ValidateSet("MD5", "SHA1", "SHA256", "SHA512")]
-    [string]$algorithm
+    [string]$Algorithm
 )
 
 
@@ -15,93 +17,126 @@ Add-Type -AssemblyName System.Windows.Forms, PresentationFramework
 
 
 function Get-UtcTime {
-    # Helper function that returns the timestamp in UTC to add to the text file
-    $utc_time = $((Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))
-    return $utc_time
+    <#
+        .SYNOPSIS
+            Returns the timestamp in UTC to add to the text file.
+    #>
+    [OutputType([string])]
+    process {
+        $UtcTime = $((Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))
+        return $UtcTime
+    }
 }
 
 
 function Get-UtcFileTime {
-    # Helper function to return the UTC time the script was run to add to the output file's name
-    $utc_file_time = $((Get-Date).ToUniversalTime().ToString("yyyy-MM-dd_HHmmss"))
-    return $utc_file_time
+    <#
+        .SYNOPSIS
+            Return the UTC time to add to the output file's name.
+    #>
+    [OutputType([string])]
+    process {
+        $UtcFileTime = $((Get-Date).ToUniversalTime().ToString("yyyy-MM-dd_HHmmss"))
+        return $UtcFileTime
+    }
 }
 
 
 function Get-FormattedFileSize {
-    # Helper function to format the size of the file to match the formatting in the Windows File Explorer
+    <#
+        .SYNOPSIS
+            Function to format the size of the file to match the formatting in the Windows File Explorer.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
     param (
         [Parameter(Mandatory = $true)]
-        [string]$path
+        [string]$Path
     )
+    begin {
+        if (-not (Test-Path -Path $Path -PathType Leaf)) {
+            throw "File not found: $Path."
+        }
+    }
+    process {
+        $File = Get-Item -Path $Path
+        $Bytes = $File.Length
 
-    if (-not (Test-Path -Path $path -PathType Leaf)) {
-        throw "File not found: $path"
-    }
+        if ($Bytes -ge 1GB) {
+            $Value = "{0:N2} GB" -f ($Bytes / 1GB)
+        }
+        elseif ($Bytes -ge 1MB) {
+            $Value = "{0:N2} MB" -f ($Bytes / 1MB)
+        }
+        elseif ($Bytes -ge 1KB) {
+            $Value = "{0:N2} KB" -f ($Bytes / 1KB)
+        }
+        else {
+            $Value = "$Bytes bytes"
+        }
 
-    $file = Get-Item -Path $path
-    $bytes = $file.Length
-
-    if ($bytes -ge 1GB) {
-        $value = "{0:N2} GB" -f ($bytes / 1GB)
+        return "$Value ({0:N0} bytes)" -f $Bytes
     }
-    elseif ($bytes -ge 1MB) {
-        $value = "{0:N2} MB" -f ($bytes / 1MB)
-    }
-    elseif ($bytes -ge 1KB) {
-        $value = "{0:N2} KB" -f ($bytes / 1KB)
-    }
-    else {
-        $value = "$bytes bytes"
-    }
-
-    return "$value ({0:N0} bytes)" -f $bytes
 }
 
 
 function Get-Messagebox {
-    # Helper function to show message box when hashing is complete
-    $msg_text = "Hashing of $($file.Name) is complete.`n`nThe verification file is: '$(Split-Path $output_file -Leaf)'`n`nSaved in: $parent_dir"
-    [System.Windows.Forms.MessageBox]::Show($msg_text, "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
+    <#
+        .SYNOPSIS
+            Shows message box when hashing is complete.
+    #>
+    [CmdletBinding()]
+    process {
+        $MsgText = "Hashing of $( $File.Name ) is complete.`n`nThe verification file is: '$(Split-Path $OutputFile -Leaf)'`n`nSaved in: $( $ParentDir )"
+        [System.Windows.Forms.MessageBox]::Show($MsgText, "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
+    }
 }
 
 
-# Get the file to be hashed
-$file = Get-Item -LiteralPath $input_file_path
-$parent_dir = $file.DirectoryName
+function Write-FileHashToFile {
+    <#
+        .SYNOPSIS
+            Hashes selected file and writes output to seperate file.
+    #>
+    [CmdletBinding()]
+    process {
+        # Get the file to be hashed
+        $File = Get-Item -LiteralPath $InputFilePath
+        $ParentDir = $File.DirectoryName
 
-# Construct the name of the verification file
-$output_file = Join-Path -Path $parent_dir -ChildPath "$($file.Name)_$(Get-UtcFileTime).$algorithm"
+        # Construct the name of the verification file
+        $OutputFile = Join-Path -Path $ParentDir -ChildPath "$( $File.Name )_$(Get-UtcFileTime).$Algorithm"
 
-Write-Host "`n[$(Get-UtcTime)] Calculating $algorithm hash for: $($file.Name)..." -ForegroundColor Blue
-Write-Host "`n Results will be saved to $output_file" -ForegroundColor Green
+        Write-Host "`n[$(Get-UtcTime)] Calculating $Algorithm hash for: $( $File.Name )..." -ForegroundColor Blue
+        Write-Host "`nResults will be saved to $OutputFile" -ForegroundColor Green
 
-"[$(Get-UtcTime)] Hashing started for file: $($file.Name)" | Out-File $output_file -Encoding utf8
+        "[$(Get-UtcTime)] Hashing started for file: $( $File.Name )" | Out-File $OutputFile -Encoding utf8
 
-# Calculate file hash
-$hash_result = (Get-FileHash -Path $input_file_path -Algorithm $algorithm).Hash
+        # Calculate file hash
+        $HashResult = (Get-FileHash -Path $InputFilePath -Algorithm $Algorithm).Hash
 
-# Build the verification report
-$report = @"
-
-
-    File Name  :  $($file.Name)
-    Directory  :  $parent_dir
-    File Size  :  $(Get-FormattedFileSize $input_file_path)
-    Hash       :  $hash_result
-    Algorithm  :  $algorithm
-
-
-"@
-
-# Write the verification report
-$report | Out-File -Append -FilePath $output_file -Encoding utf8
-
-"[$(Get-UtcTime)] File hashing complete." | Out-File -Append -FilePath $output_file -Encoding utf8
-
-# Display specific lines to the terminal
-$report.Split("`n")[2..8] | Write-Host
+        # Build the verification report
+        $Report = @"
 
 
-# Display success message box to the user
-Get-Messagebox
+    File Name  :  $( $File.Name )
+    Directory  :  $ParentDir
+    File Size  :  $( Get-FormattedFileSize $InputFilePath )
+    Hash       :  $HashResult
+    Algorithm  :  $Algorithm
+
+
+        "@
+
+        # Write the verification report
+        $Report | Out-File -Append -FilePath $OutputFile -Encoding utf8
+
+        "[$(Get-UtcTime)] File hashing complete." | Out-File -Append -FilePath $OutputFile -Encoding utf8
+
+        # Display specific lines to the terminal
+        $Report.Split("`n")[2..8] | Write-Host
+
+        # Display success message box to the user
+        Get-Messagebox
+    }
+}
