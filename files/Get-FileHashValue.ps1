@@ -41,7 +41,8 @@ function Get-UtcFileTime {
 function Get-FormattedFileSize {
     <#
         .SYNOPSIS
-            Function to format the size of the file to match the formatting in the Windows File Explorer.
+            Function to format the size of the file to match the formatting in
+            the Windows File Explorer.
     #>
     [CmdletBinding()]
     [OutputType([string])]
