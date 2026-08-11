@@ -32,7 +32,7 @@ function Test-Environment {
 function Copy-PS1File {
     <#
         .SYNOPSIS
-            Copies the 'Get-FileHashValue.ps1' file to the '%USERPROFILE\Documents\WindowsPowerShell' folder.
+            Copies the 'Get-FileHashValue.ps1' file to the '%USERPROFILE%\Documents\WindowsPowerShell' folder.
     #>
     # Handle Get-FileHashValue.ps1
     if (-not (Test-Path -Path $PSScriptDir)) {
