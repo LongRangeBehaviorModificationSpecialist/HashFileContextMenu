@@ -112,6 +112,25 @@ function Invoke-RegistryEdits {
                 "" = ("String", "")
             }
 
+            "Software\Classes\*\shell\GetFileHash\shell\004n6" = @{
+                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\hashtag.ico')
+                "MUIVerb"     = ("String", "Forensic")
+                "SubCommands" = ("String", "")
+            }
+
+            "Software\Classes\*\shell\GetFileHash\shell\004n6\shell" = @{
+                "" = ("String", "")
+            }
+
+            "Software\Classes\*\shell\GetFileHash\shell\004n6\shell\004n6-ToFile" = @{
+                "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
+                "MUIVerb" = ("String", "Save Forensic Hashes")
+            }
+
+            "Software\Classes\*\shell\GetFileHash\shell\004n6\shell\004n6-ToFile\command" = @{
+                "" = ("ExpandString", 'powershell.exe -NoExit %USERPROFILE%\Documents\WindowsPowerShell\Get-ForensicHashValues.ps1 "%L"')
+            }
+
             "Software\Classes\*\shell\GetFileHash\shell\01MD5" = @{
                 "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\hashtag.ico')
                 "MUIVerb"     = ("String", "MD5")

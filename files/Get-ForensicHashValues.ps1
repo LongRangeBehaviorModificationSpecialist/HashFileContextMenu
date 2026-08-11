@@ -2,13 +2,13 @@
 
 Param (
     [Parameter(Position = 0,
-               Mandatory = $true)]
-    [string]$InputFilePath,
+        Mandatory = $true)]
+    [string]$InputFilePath
 
-    [Parameter(Position = 1,
-               Mandatory = $true)]
-    [ValidateSet("MD5", "SHA1", "SHA256", "SHA512")]
-    [string]$Algorithm
+    # [Parameter(Position = 1,
+    #     Mandatory = $true)]
+    # [ValidateSet("MD5", "SHA1", "SHA256", "SHA512")]
+    # [string]$Algorithm
 )
 
 
@@ -34,8 +34,6 @@ function Get-UtcTime {
     $UtcTime = $((Get-Date).ToUniversalTime().ToString($TimeFormat))
     return $UtcTime
 }
-
-
 
 
 function Get-FormattedFileSize {
@@ -89,7 +87,7 @@ function Get-Messagebox {
 }
 
 
-function Write-FileHashToFile {
+function Write-ForensicHashesToFile {
     <#
         .SYNOPSIS
             Hashes selected file and writes output to seperate file.
@@ -100,25 +98,26 @@ function Write-FileHashToFile {
         $ParentDir = $File.DirectoryName
 
         # Construct the name of the verification file
-        $OutputFile = Join-Path -Path $ParentDir -ChildPath "$( $File.Name )_$( Get-UtcTime -Format FILE ).$Algorithm"
+        $OutputFile = Join-Path -Path $ParentDir -ChildPath "$( $File.Name )_$( Get-UtcTime -Format FILE ).SHA256"
 
-        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating $Algorithm hash for: $( $File.Name )..." -ForegroundColor Blue
+        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating MD5 and SHA256 hashes for: $( $File.Name )..." -ForegroundColor Blue
         Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Results will be saved to $OutputFile`n" -ForegroundColor Green
 
         "[$( Get-UtcTime -Format DISPLAY )] Hashing started for file: $( $File.Name )" | Out-File $OutputFile -Encoding utf8
 
         # Calculate file hash
-        $HashResult = (Get-FileHash -Path $InputFilePath -Algorithm $Algorithm).Hash
+        $Md5Result = (Get-FileHash -Path $InputFilePath -Algorithm MD5).Hash
+        $Sha256Result = (Get-FileHash -Path $InputFilePath -Algorithm SHA256).Hash
 
         # Build the verification report
         $Report = @"
 
 
-    File Name  :  $( $File.Name )
-    Directory  :  $ParentDir
-    File Size  :  $( Get-FormattedFileSize -Path $InputFilePath )
-    Hash       :  $HashResult
-    Algorithm  :  $Algorithm
+    File Name   :  $( $File.Name )
+    Directory   :  $ParentDir
+    File Size   :  $( Get-FormattedFileSize -Path $InputFilePath )
+    MD5 Hash    :  $Md5Result
+    SHA256 Hash :  $Sha256Result
 
 
 "@
@@ -129,11 +128,11 @@ function Write-FileHashToFile {
         "[$( Get-UtcTime -Format DISPLAY )] File hashing complete." | Out-File -Append -FilePath $OutputFile -Encoding utf8
 
         # Display specific lines to the terminal
-        $Report.Split("`n")[1..8] | Write-Host
+        $Report.Split("`n")[2..8] | Write-Host
 
         # Display success message box to the user
         Get-Messagebox
     }
 }
 
-Write-FileHashToFile
+Write-ForensicHashesToFile
