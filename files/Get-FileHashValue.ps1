@@ -22,7 +22,7 @@ function Get-UtcTime {
             Returns the timestamp in UTC to add to the text file.
     #>
     process {
-        return $((Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))
+        return $( (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ") )
     }
 }
 
@@ -33,7 +33,7 @@ function Get-UtcFileTime {
             Return the UTC time to add to the output file's name.
     #>
     process {
-        return $((Get-Date).ToUniversalTime().ToString("yyyy-MM-dd_HHmmss"))
+        return $( (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd_HHmmss") )
     }
 }
 
@@ -126,7 +126,7 @@ function Write-FileHashToFile {
         # Write the verification report
         $Report | Out-File -Append -FilePath $OutputFile -Encoding utf8
 
-        "[$(Get-UtcTime)] File hashing complete." | Out-File -Append -FilePath $OutputFile -Encoding utf8
+        "[$( Get-UtcTime )] File hashing complete." | Out-File -Append -FilePath $OutputFile -Encoding utf8
 
         # Display specific lines to the terminal
         $Report.Split("`n")[2..8] | Write-Host
