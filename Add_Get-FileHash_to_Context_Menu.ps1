@@ -32,7 +32,8 @@ function Test-Environment {
 function Copy-PS1File {
     <#
         .SYNOPSIS
-            Copies the 'Get-FileHashValue.ps1' file to the '%USERPROFILE%\Documents\WindowsPowerShell' folder.
+            Copies the 'Get-FileHashValue.ps1' file to the '%USERPROFILE%\Documents
+            \WindowsPowerShell' folder.
     #>
     # Handle Get-FileHashValue.ps1
     if (-not (Test-Path -Path $PSScriptDir)) {
@@ -48,7 +49,8 @@ function Copy-PS1File {
 function Copy-Icons {
     <#
         .SYNOPSIS
-            Copies the three .ico files to the '%USERPROFILE%\Pictures\icons' folder. If the folder does not exist, it will be created.
+            Copies the three .ico files to the '%USERPROFILE%\Pictures\icons'
+            folder. If the folder does not exist, it will be created.
     #>
     process {
         if (-not (Test-Path -Path $IconsDir)) {
@@ -270,7 +272,8 @@ function Invoke-RegistryEdits {
 function Add-FileExtAssociation {
     <#
         .SYNOPSIS
-            Registers and forces .MD5, .SHA1, .SHA256, and .SHA512 extensions to open automatically using Notepad++.
+            Registers and forces .MD5, .SHA1, .SHA256, and .SHA512 extensions
+            to open automatically using Notepad++.
     #>
     begin {
         Write-Host "[-] Configuring Notepad++ file associations..." -ForegroundColor Green
