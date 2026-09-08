@@ -1,12 +1,10 @@
-# DLU : 25-Jul-2026
+# DLU : 08-Sep-2026
 
 Param (
-    [Parameter(Position = 0,
-               Mandatory = $true)]
+    [Parameter(Position = 0, Mandatory = $true)]
     [string]$InputFilePath,
 
-    [Parameter(Position = 1,
-               Mandatory = $true)]
+    [Parameter(Position = 1, Mandatory = $true)]
     [ValidateSet("MD5", "SHA1", "SHA256", "SHA512")]
     [string]$Algorithm
 )
@@ -40,16 +38,18 @@ function Get-UtcTime {
 
 function Get-FormattedFileSize {
     <#
-        .SYNOPSIS
-            Function to format the size of the file to match the formatting in
-            the Windows File Explorer.
+    .SYNOPSIS
+        Function to format the size of the file to match the formatting in
+        the Windows File Explorer.
     #>
     [CmdletBinding()]
     [OutputType([string])]
+
     param (
         [Parameter(Mandatory = $true)]
         [string]$Path
     )
+
     begin {
         if (-not (Test-Path -Path $Path -PathType Leaf)) {
             throw "File not found: $Path."
@@ -79,8 +79,8 @@ function Get-FormattedFileSize {
 
 function Get-Messagebox {
     <#
-        .SYNOPSIS
-            Shows message box when hashing is complete.
+    .SYNOPSIS
+        Shows message box when hashing is complete.
     #>
     process {
         $MsgText = "Hashing of $( $File.Name ) is complete.`n`nThe verification file is: '$(Split-Path $OutputFile -Leaf)'`n`nSaved in: $( $ParentDir )"
@@ -91,26 +91,26 @@ function Get-Messagebox {
 
 function Write-FileHashToFile {
     <#
-        .SYNOPSIS
-            Hashes selected file and writes output to seperate file.
+    .SYNOPSIS
+        Hashes selected file and writes output to seperate file.
     #>
     process {
-        # Get the file to be hashed
+        # Get the file to be hashed.
         $File = Get-Item -LiteralPath $InputFilePath
         $ParentDir = $File.DirectoryName
 
-        # Construct the name of the verification file
+        # Construct the name of the verification file.
         $OutputFile = Join-Path -Path $ParentDir -ChildPath "$( $File.Name )_$( Get-UtcTime -Format FILE ).$Algorithm"
 
-        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating $Algorithm hash for: $( $File.Name )..." -ForegroundColor Blue
+        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating $Algorithm hash for → $( $File.Name )..." -ForegroundColor Blue
         Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Results will be saved to $OutputFile`n" -ForegroundColor Green
 
-        "[$( Get-UtcTime -Format DISPLAY )] Hashing started for file: $( $File.Name )" | Out-File $OutputFile -Encoding utf8
+        "[$( Get-UtcTime -Format DISPLAY )] Hashing started for file → $( $File.Name )" | Out-File $OutputFile -Encoding utf8
 
-        # Calculate file hash
+        # Calculate file hash.
         $HashResult = (Get-FileHash -Path $InputFilePath -Algorithm $Algorithm).Hash
 
-        # Build the verification report
+        # Build the verification report.
         $Report = @"
 
 
@@ -123,15 +123,15 @@ function Write-FileHashToFile {
 
 "@
 
-        # Write the verification report
+        # Write the verification report.
         $Report | Out-File -Append -FilePath $OutputFile -Encoding utf8
 
         "[$( Get-UtcTime -Format DISPLAY )] File hashing complete." | Out-File -Append -FilePath $OutputFile -Encoding utf8
 
-        # Display specific lines to the terminal
+        # Display specific lines to the terminal.
         $Report.Split("`n")[1..8] | Write-Host
 
-        # Display success message box to the user
+        # Display success message box to the user.
         Get-Messagebox
     }
 }

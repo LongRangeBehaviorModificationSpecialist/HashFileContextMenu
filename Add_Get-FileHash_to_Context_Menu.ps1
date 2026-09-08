@@ -1,4 +1,4 @@
-# DLU : 27-Jul-2026
+# DLU : 08-Sep-2026
 
 
 # Establish the root directory
@@ -24,7 +24,7 @@ function Test-Environment {
         throw "[!] Administrative privileges required. Please run PowerShell as Administrator and try again."
     }
     else {
-        Write-Host "[-] Running as Administrator. Continuing with the process..." -ForegroundColor Green
+        Write-Host "[-] Running as Administrator. Continuing with execution..." -ForegroundColor Green
     }
 }
 
@@ -32,17 +32,28 @@ function Test-Environment {
 function Copy-PS1File {
     <#
         .SYNOPSIS
-            Copies the 'Get-FileHashValue.ps1' file to the '%USERPROFILE%\Documents
-            \WindowsPowerShell' folder.
+            Copies 'Get-FileHashValue.ps1' and
+            'Get-ForensicHashValues.ps1' files to the
+            '%USERPROFILE%\Documents\WindowsPowerShell' folder.
+
+            If the 'WindowsPowerShell' does not exist, it will
+            be created by this function before the files are
+            copied.
     #>
-    # Handle Get-FileHashValue.ps1
     if (-not (Test-Path -Path $PSScriptDir)) {
         New-Item -Path $PSScriptDir -ItemType Directory -ErrorAction Stop | Out-Null
     }
 
     $FileHashScript = Join-Path -Path $Root -ChildPath "files\Get-FileHashValue.ps1"
+    $ForensicFileHashScript = Join-Path -Path $Root -ChildPath "files\Get-ForensicHashValues.ps1"
+
+    # Copy 'Get-FileHashValue.ps1' to the WindowsPowerShell directory
     Copy-Item -Path $FileHashScript -Destination $PSScriptDir -Force -ErrorAction Stop
-    Write-Host "[-] File 'Get-FileHashValue.ps1' was copied to $( $PSScriptDir )." -ForegroundColor Cyan
+    Write-Host "[-] File 'Get-FileHashValue.ps1' was copied to $( $PSScriptDir )..." -ForegroundColor Cyan
+
+    # Copy 'Get-ForensicHashValues.ps1' to the WindowsPowerShell directory
+    Copy-Item -Path $ForensicFileHashScript -Destination $PSScriptDir -Force -ErrorAction Stop
+    Write-Host "[-] File 'Get-ForensicHashValues.ps1' was copied to $( $PSScriptDir )..." -ForegroundColor Cyan
 }
 
 
@@ -60,9 +71,10 @@ function Copy-Icons {
         $ImageFolder = Join-Path -Path $Root -ChildPath "img"
         $Images      = Get-ChildItem -Path $ImageFolder -File -Filter *.ico
 
+        # Copy each .ico file to the 'icons' directory
         foreach ($File in $Images) {
             Copy-Item -Path $File.FullName -Destination $IconsDir -Force -ErrorAction Stop
-            Write-Host "[-] Copied $( $File.Name ) to $( $IconsDir )."
+            Write-Host "[-] Copied $( $File.Name ) to $( $IconsDir )..."
         }
     }
 }
@@ -77,14 +89,14 @@ function Import-HKCR {
         try {
             if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
                 $Null = New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Scope Global
-                Write-Host "[-] The HKEY_CLASSES_ROOT Path was added to the PSDrive list." -ForegroundColor Cyan
+                Write-Host "[-] The HKEY_CLASSES_ROOT Path was added to the PSDrive list..." -ForegroundColor Cyan
             }
             else {
                 Write-Host "[-] The HKEY_CLASSES_ROOT Path is already added to the PSDrive list. Continuing with script..." -ForegroundColor Green
             }
         }
         catch {
-            $ErrorMsg = "[!] An unknown error occurred when running '$( $MyInvocation.MyCommand.Name )'. Error: $( $_.Exception.Message )."
+            $ErrorMsg = "[!] An unknown error occurred when running '$( $MyInvocation.MyCommand.Name )'. Error → $( $_.Exception.Message )."
             Write-Host "$ErrorMsg" -ForegroundColor Red
         }
     }
@@ -124,7 +136,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\004n6\shell\004n6-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "Save Forensic Hashes")
+                "MUIVerb" = ("String", "Forensic Hashes  →  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\004n6\shell\004n6-ToFile\command" = @{
@@ -143,7 +155,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "MD5 -> Save To File")
+                "MUIVerb" = ("String", "MD5  →  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToFile\command" = @{
@@ -152,7 +164,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToScreen" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb" = ("String", "MD5 -> Print To Screen")
+                "MUIVerb" = ("String", "MD5  →  Print To Screen")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToScreen\command" = @{
@@ -171,7 +183,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "SHA1 -> Save To File")
+                "MUIVerb" = ("String", "SHA1  →  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToFile\command" = @{
@@ -180,7 +192,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToScreen" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb" = ("String", "SHA1 -> Print To Screen")
+                "MUIVerb" = ("String", "SHA1  →  Print To Screen")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToScreen\command" = @{
@@ -199,7 +211,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "SHA256 -> Save To File")
+                "MUIVerb" = ("String", "SHA256  →  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToFile\command" = @{
@@ -208,7 +220,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToScreen" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb" = ("String", "SHA256 -> Print To Screen")
+                "MUIVerb" = ("String", "SHA256  →  Print To Screen")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToScreen\command" = @{
@@ -226,7 +238,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "SHA512 -> Save To File")
+                "MUIVerb" = ("String", "SHA512  →  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToFile\command" = @{
@@ -235,7 +247,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToScreen" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb" = ("String", "SHA512 -> Print To Screen")
+                "MUIVerb" = ("String", "SHA512  →  Print To Screen")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToScreen\command" = @{
@@ -245,18 +257,18 @@ function Invoke-RegistryEdits {
     }
 
     process {
-        # Open HKEY_LOCAL_MACHINE directly via standard Win32 security context
+        # Open HKEY_LOCAL_MACHINE directly via standard Win32 security context.
         $RegistryHive = [Microsoft.Win32.Registry]::LocalMachine
 
         foreach ($SubKeyPath in $RegKeyHashTable.Keys) {
             $Entries = $RegKeyHashTable[$SubKeyPath]
 
-            # Trim removes accidental leading/trailing spaces
-            # Replace switches any accidental forward slashes to backslashes
+            # Trim removes accidental leading/trailing spaces.
+            # Replace switches any accidental forward slashes to backslashes.
             $CleanPath = $SubKeyPath.Trim().Replace("/", "\")
 
             try {
-                # Create SubKey natively using the sanitized path string
+                # Create SubKey natively using the sanitized path string.
                 $CurrentKey = $RegistryHive.CreateSubKey($CleanPath)
             }
             catch {
@@ -266,7 +278,8 @@ function Invoke-RegistryEdits {
             foreach ($PropName in $Entries.Keys) {
                 $PropType, $PropValue = $Entries[$PropName]
 
-                # Map your custom strings cleanly to [Microsoft.Win32.RegistryValueKind] enums
+                # Map your custom strings cleanly to
+                # [Microsoft.Win32.RegistryValueKind] enums.
                 $ValueKind = if ($PropType -eq "ExpandString") {
                     [Microsoft.Win32.RegistryValueKind]::ExpandString
                 }
@@ -278,9 +291,9 @@ function Invoke-RegistryEdits {
                 $CurrentKey.SetValue($PropName, $PropValue, $ValueKind)
             }
 
-            # Safely close the unmanaged memory pointer handler
+            # Safely close the unmanaged memory pointer handler.
             if ($CurrentKey) { $CurrentKey.Close() }
-            Write-Host "[+] Applied configuration safely to $SubKeyPath." -ForegroundColor Gray
+            Write-Host "[+] Applied configuration to $SubKeyPath" -ForegroundColor Cyan
         }
 
         Write-Host "[+] All registry edit operations completed successfully." -ForegroundColor Green
@@ -300,15 +313,17 @@ function Add-FileExtAssociation {
         # Target hash extensions
         $Extensions = @(".MD5", ".SHA1", ".SHA256", ".SHA512")
 
-        # Establish a unique ProgID specific to Notepad++ for these types
+        # Establish a unique ProgID specific to Notepad++ for these types.
         $ProgId = "Notepad++LogFile"
     }
     process {
-        # Detect the installation path of Notepad++ from the registry dynamically
-        # Checks both 64-bit and 32-bit install vectors automatically
+        # Detect the installation path of Notepad++ from the registry
+        # dynamically checks both 64-bit and 32-bit install vectors
+        # automatically.
         $NppPath = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe" -ErrorAction SilentlyContinue).'(default)'
 
-        # Fallback to standard installation paths if App Paths metadata isn't set
+        # Fallback to standard installation paths if App Paths metadata
+        # isn't set.
         if (-not $NppPath) {
             if (Test-Path "${env:ProgramFiles}\Notepad++\notepad++.exe") {
                 $NppPath = "${env:ProgramFiles}\Notepad++\notepad++.exe"
@@ -318,15 +333,17 @@ function Add-FileExtAssociation {
             }
         }
 
-        # Stop if Notepad++ is missing from the target machine
+        # Stop script if Notepad++ is missing from the target machine.
         if (-not $NppPath) {
             throw "[!] Notepad++ was not detected on this machine. Please verify it is installed."
         }
 
         Write-Host "[+] Found Notepad++ executable at: $NppPath" -ForegroundColor Gray
 
-        # Map out the standard Open Execution verb structure for our custom ProgID
-        # The '"%1"' variable tells Windows to pass the target file path directly into the application space
+        # Map out the standard Open Execution verb structure for our
+        # custom ProgID.
+        # The '"%1"' variable tells Windows to pass the target file
+        # path directly into the application space.
         $AssociationMap = [ordered]@{
             "Software\Classes\$ProgId" = @{
                 "" = ("String", "Hash Log File")
@@ -351,7 +368,7 @@ function Add-FileExtAssociation {
                 if ($CurrentKey) { $CurrentKey.Close() }
             }
             catch {
-                throw "[!] Failed setting open execution handlers : $SubKeyPath. Details: $( $_ )."
+                throw "[!] Failed setting open execution handlers → $SubKeyPath. Details → $( $_ )."
             }
         }
 
@@ -364,7 +381,7 @@ function Add-FileExtAssociation {
                 Write-Host "[+] Associated $Ext with Notepad++ successfully." -ForegroundColor Gray
             }
             catch {
-                Write-Error "[!] Failed linking extension $Ext. Details : $( $_ )."
+                Write-Error "[!] Failed linking extension $Ext. Details → $( $_ )."
             }
         }
 
@@ -384,8 +401,8 @@ try {
     Add-FileExtAssociation
 }
 catch {
-    Write-Host "`n[!] ERROR: $( $_.Exception.Message )." -ForegroundColor Red
+    Write-Host "`n[!] ERROR → $( $_.Exception.Message )." -ForegroundColor Red
 }
 finally {
-    Write-Host "`n[-] Script workflow completed successfully!`n" -ForegroundColor Green
+    Write-Host "`n[-] Script workflow completed`n" -ForegroundColor Green
 }
