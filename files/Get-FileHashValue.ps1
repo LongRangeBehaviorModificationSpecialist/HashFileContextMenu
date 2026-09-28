@@ -1,4 +1,4 @@
-# DLU : 08-Sep-2026
+# DLU : 28-Sep-2026
 
 Param (
     [Parameter(Position = 0, Mandatory = $true)]
@@ -30,6 +30,7 @@ function Get-UtcTime {
     }
 
     $UtcTime = $((Get-Date).ToUniversalTime().ToString($TimeFormat))
+    
     return $UtcTime
 }
 
@@ -102,10 +103,10 @@ function Write-FileHashToFile {
         # Construct the name of the verification file.
         $OutputFile = Join-Path -Path $ParentDir -ChildPath "$( $File.Name )_$( Get-UtcTime -Format FILE ).$Algorithm"
 
-        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating $Algorithm hash for → $( $File.Name )..." -ForegroundColor Blue
+        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating $Algorithm hash for => $( $File.Name )..." -ForegroundColor Blue
         Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Results will be saved to $OutputFile`n" -ForegroundColor Green
 
-        "[$( Get-UtcTime -Format DISPLAY )] Hashing started for file → $( $File.Name )" | Out-File $OutputFile -Encoding utf8
+        "[$( Get-UtcTime -Format DISPLAY )] Hashing started for file => $( $File.Name )" | Out-File $OutputFile -Encoding utf8
 
         # Calculate file hash.
         $HashResult = (Get-FileHash -Path $InputFilePath -Algorithm $Algorithm).Hash

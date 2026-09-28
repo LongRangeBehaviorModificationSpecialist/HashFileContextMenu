@@ -1,4 +1,4 @@
-# DLU : 08-Sep-2026
+# DLU : 28-Sep-2026
 
 Param (
     [Parameter(Position = 0, Mandatory = $true)]
@@ -47,10 +47,10 @@ function Get-FormattedFileSize {
         [Parameter(Mandatory = $true)]
         [string]$Path
     )
-    
+
     begin {
         if (-not (Test-Path -Path $Path -PathType Leaf)) {
-            throw "File not found → $Path."
+            throw "File not found => $Path."
         }
     }
     process {
@@ -100,14 +100,14 @@ function Write-ForensicHashesToFile {
         # Construct the name of the verification file.
         $OutputFile = Join-Path -Path $ParentDir -ChildPath "$( $File.Name )_$( Get-UtcTime -Format FILE ).SHA256"
 
-        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating MD5 and SHA256 hashes for → $( $File.Name )..." -ForegroundColor Blue
+        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating MD5 and SHA256 hashes for => $( $File.Name )..." -ForegroundColor Blue
         Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Results will be saved to $OutputFile`n" -ForegroundColor Green
 
-        "[$( Get-UtcTime -Format DISPLAY )] Hashing started for file → $( $File.Name )" | Out-File $OutputFile -Encoding utf8
+        "[$( Get-UtcTime -Format DISPLAY )] Hashing started for file => $( $File.Name )" | Out-File $OutputFile -Encoding utf8
 
         # Calculate file hash.
-        $Md5Result = (Get-FileHash -Path $InputFilePath -Algorithm MD5).Hash
-        $Sha256Result = (Get-FileHash -Path $InputFilePath -Algorithm SHA256).Hash
+        $Md5Result = (Get-FileHash -LiteralPath $InputFilePath -Algorithm MD5).Hash
+        $Sha256Result = (Get-FileHash -LiteralPath $InputFilePath -Algorithm SHA256).Hash
 
         # Build the verification report.
         $Report = @"
