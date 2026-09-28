@@ -49,11 +49,11 @@ function Copy-PS1File {
 
     # Copy 'Get-FileHashValue.ps1' to the WindowsPowerShell directory
     Copy-Item -Path $FileHashScript -Destination $PSScriptDir -Force -ErrorAction Stop
-    Write-Host "[-] File 'Get-FileHashValue.ps1' was copied to $( $PSScriptDir )..." -ForegroundColor Cyan
+    Write-Host "[-] File 'Get-FileHashValue.ps1' was copied to $( $PSScriptDir )..." -ForegroundColor Green
 
     # Copy 'Get-ForensicHashValues.ps1' to the WindowsPowerShell directory
     Copy-Item -Path $ForensicFileHashScript -Destination $PSScriptDir -Force -ErrorAction Stop
-    Write-Host "[-] File 'Get-ForensicHashValues.ps1' was copied to $( $PSScriptDir )..." -ForegroundColor Cyan
+    Write-Host "[-] File 'Get-ForensicHashValues.ps1' was copied to $( $PSScriptDir )..." -ForegroundColor Green
 }
 
 
@@ -74,7 +74,7 @@ function Copy-Icons {
         # Copy each .ico file to the 'icons' directory
         foreach ($File in $Images) {
             Copy-Item -Path $File.FullName -Destination $IconsDir -Force -ErrorAction Stop
-            Write-Host "[-] Copied $( $File.Name ) to $( $IconsDir )..."
+            Write-Host "[-] Copied $( $File.Name ) to $( $IconsDir )..." -ForegroundColor Green
         }
     }
 }
@@ -96,7 +96,7 @@ function Import-HKCR {
             }
         }
         catch {
-            $ErrorMsg = "[!] An unknown error occurred when running '$( $MyInvocation.MyCommand.Name )'. Error → $( $_.Exception.Message )."
+            $ErrorMsg = "[!] An unknown error occurred when running '$( $MyInvocation.MyCommand.Name )'. Error => $( $_.Exception.Message )."
             Write-Host "$ErrorMsg" -ForegroundColor Red
         }
     }
@@ -125,7 +125,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\004n6" = @{
-                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\hashtag.ico')
+                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
                 "MUIVerb"     = ("String", "Forensic")
                 "SubCommands" = ("String", "")
             }
@@ -136,7 +136,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\004n6\shell\004n6-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "Forensic Hashes  →  Save To File")
+                "MUIVerb" = ("String", "Forensic Hashes  =>  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\004n6\shell\004n6-ToFile\command" = @{
@@ -144,7 +144,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5" = @{
-                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\hashtag.ico')
+                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
                 "MUIVerb"     = ("String", "MD5")
                 "SubCommands" = ("String", "")
             }
@@ -155,7 +155,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "MD5  →  Save To File")
+                "MUIVerb" = ("String", "MD5  =>  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToFile\command" = @{
@@ -164,7 +164,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToScreen" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb" = ("String", "MD5  →  Print To Screen")
+                "MUIVerb" = ("String", "MD5  =>  Print To Screen")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToScreen\command" = @{
@@ -172,7 +172,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1" = @{
-                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\hashtag.ico')
+                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
                 "MUIVerb"     = ("String", "SHA1")
                 "SubCommands" = ("String", "")
             }
@@ -183,7 +183,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "SHA1  →  Save To File")
+                "MUIVerb" = ("String", "SHA1  =>  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToFile\command" = @{
@@ -192,7 +192,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToScreen" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb" = ("String", "SHA1  →  Print To Screen")
+                "MUIVerb" = ("String", "SHA1  =>  Print To Screen")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToScreen\command" = @{
@@ -200,7 +200,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256" = @{
-                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\hashtag.ico')
+                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
                 "MUIVerb"     = ("String", "SHA256")
                 "SubCommands" = ("String", "")
             }
@@ -211,7 +211,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "SHA256  →  Save To File")
+                "MUIVerb" = ("String", "SHA256  =>  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToFile\command" = @{
@@ -220,14 +220,14 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToScreen" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb" = ("String", "SHA256  →  Print To Screen")
+                "MUIVerb" = ("String", "SHA256  =>  Print To Screen")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToScreen\command" = @{
                 "" = ("String", 'powershell.exe -NoExit Get-FileHash -Path "%L" -Algorithm SHA256 | Format-List')
             }
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512" = @{
-                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\hashtag.ico')
+                "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
                 "MUIVerb"     = ("String", "SHA512")
                 "SubCommands" = ("String", "")
             }
@@ -238,7 +238,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToFile" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\folder.ico')
-                "MUIVerb" = ("String", "SHA512  →  Save To File")
+                "MUIVerb" = ("String", "SHA512  =>  Save To File")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToFile\command" = @{
@@ -247,7 +247,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToScreen" = @{
                 "Icon"    = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb" = ("String", "SHA512  →  Print To Screen")
+                "MUIVerb" = ("String", "SHA512  =>  Print To Screen")
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToScreen\command" = @{
@@ -293,7 +293,7 @@ function Invoke-RegistryEdits {
 
             # Safely close the unmanaged memory pointer handler.
             if ($CurrentKey) { $CurrentKey.Close() }
-            Write-Host "[+] Applied configuration to $SubKeyPath" -ForegroundColor Cyan
+            Write-Host "[+] Applied configuration to $SubKeyPath" -ForegroundColor Green
         }
 
         Write-Host "[+] All registry edit operations completed successfully." -ForegroundColor Green
@@ -338,7 +338,7 @@ function Add-FileExtAssociation {
             throw "[!] Notepad++ was not detected on this machine. Please verify it is installed."
         }
 
-        Write-Host "[+] Found Notepad++ executable at: $NppPath" -ForegroundColor Gray
+        Write-Host "[+] Found Notepad++ executable at: $NppPath" -ForegroundColor Green
 
         # Map out the standard Open Execution verb structure for our
         # custom ProgID.
@@ -368,7 +368,7 @@ function Add-FileExtAssociation {
                 if ($CurrentKey) { $CurrentKey.Close() }
             }
             catch {
-                throw "[!] Failed setting open execution handlers → $SubKeyPath. Details → $( $_ )."
+                throw "[!] Failed setting open execution handlers => $SubKeyPath. Details => $( $_ )."
             }
         }
 
@@ -378,10 +378,10 @@ function Add-FileExtAssociation {
                 $ExtKey = $RegistryHive.CreateSubKey("Software\Classes\$Ext")
                 $ExtKey.SetValue("", $ProgId, [Microsoft.Win32.RegistryValueKind]::String)
                 $ExtKey.Close()
-                Write-Host "[+] Associated $Ext with Notepad++ successfully." -ForegroundColor Gray
+                Write-Host "[+] Successfully associated $Ext file extension to open with Notepad++." -ForegroundColor Green
             }
             catch {
-                Write-Error "[!] Failed linking extension $Ext. Details → $( $_ )."
+                Write-Error "[!] Failed to associate $Ext file extension. Details => $( $_ )."
             }
         }
 
@@ -401,7 +401,7 @@ try {
     Add-FileExtAssociation
 }
 catch {
-    Write-Host "`n[!] ERROR → $( $_.Exception.Message )." -ForegroundColor Red
+    Write-Host "`n[!] ERROR => $( $_.Exception.Message )." -ForegroundColor Red
 }
 finally {
     Write-Host "`n[-] Script workflow completed`n" -ForegroundColor Green
