@@ -1,4 +1,4 @@
-# DLU : 28-Sep-2026
+# DLU : 13-Oct-2026
 
 Param (
     [Parameter(Position = 0, Mandatory = $true)]
@@ -11,11 +11,11 @@ Add-Type -AssemblyName System.Windows.Forms, PresentationFramework
 
 
 function Get-UtcTime {
-    <#
-    .SYNOPSIS
-        Helper function that returns the timestamp in UTC in two
-        different formats.
-    #>
+<#
+.SYNOPSIS
+    Helper function that returns the timestamp in UTC in two
+    different formats.
+#>
     param(
         [ValidateSet("FILE", "DISPLAY")]
         [string]$Format
@@ -35,11 +35,11 @@ function Get-UtcTime {
 
 
 function Get-FormattedFileSize {
-    <#
-    .SYNOPSIS
-        Function to format the size of the file to match the formatting in
-        the Windows File Explorer.
-    #>
+<#
+.SYNOPSIS
+    Function to format the size of the file to match the formatting in
+    the Windows File Explorer.
+#>
     [CmdletBinding()]
     [OutputType([string])]
 
@@ -76,40 +76,41 @@ function Get-FormattedFileSize {
 
 
 function Get-Messagebox {
-    <#
-    .SYNOPSIS
-        Shows message box when hashing is complete.
-    #>
+<#
+.SYNOPSIS
+    Shows message box when hashing is complete.
+#>
     process {
-        $MsgText = "Hashing of $( $File.Name ) is complete.`n`nThe verification file is: '$(Split-Path $OutputFile -Leaf)'`n`nSaved in: $( $ParentDir )"
+        $MsgText = "Hashing of $( $File.Name ) is complete.`n`nThe verification file is [ $(Split-Path $OutputFile -Leaf) ]`n`nSaved in => $( $ParentDir )"
         [System.Windows.Forms.MessageBox]::Show($MsgText, "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
     }
 }
 
 
 function Write-ForensicHashesToFile {
-    <#
-    .SYNOPSIS
-        Hashes selected file and writes output to seperate file.
-    #>
+<#
+.SYNOPSIS
+    Hashes selected file and writes output to seperate file.
+#>
     process {
-        # Get the file to be hashed.
+        # Get the file to be hashed
         $File = Get-Item -LiteralPath $InputFilePath
         $ParentDir = $File.DirectoryName
 
-        # Construct the name of the verification file.
+        # Construct the name of the verification file
         $OutputFile = Join-Path -Path $ParentDir -ChildPath "$( $File.Name )_$( Get-UtcTime -Format FILE ).SHA256"
 
-        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating MD5 and SHA256 hashes for => $( $File.Name )..." -ForegroundColor Blue
+        Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating hashes for => $( $File.Name )..." -ForegroundColor Blue
         Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Results will be saved to $OutputFile`n" -ForegroundColor Green
 
         "[$( Get-UtcTime -Format DISPLAY )] Hashing started for file => $( $File.Name )" | Out-File $OutputFile -Encoding utf8
 
         # Calculate file hash.
-        $Md5Result = (Get-FileHash -LiteralPath $InputFilePath -Algorithm MD5).Hash
+        $Md5Result    = (Get-FileHash -LiteralPath $InputFilePath -Algorithm MD5).Hash
+        $Sha1Result   = (Get-FileHash -LiteralPath $InputFilePath -Algorithm SHA1).Hash
         $Sha256Result = (Get-FileHash -LiteralPath $InputFilePath -Algorithm SHA256).Hash
 
-        # Build the verification report.
+        # Build the verification report
         $Report = @"
 
 
@@ -117,18 +118,19 @@ function Write-ForensicHashesToFile {
     Directory   :  $ParentDir
     File Size   :  $( Get-FormattedFileSize -Path $InputFilePath )
     MD5 Hash    :  $Md5Result
+    SHA1 Hash   :  $Sha1Result
     SHA256 Hash :  $Sha256Result
 
 
 "@
 
-        # Write the verification report.
+        # Write the verification report
         $Report | Out-File -Append -FilePath $OutputFile -Encoding utf8
 
         "[$( Get-UtcTime -Format DISPLAY )] File hashing complete." | Out-File -Append -FilePath $OutputFile -Encoding utf8
 
         # Display specific lines to the terminal.
-        $Report.Split("`n")[2..8] | Write-Host
+        $Report.Split("`n")[2..9] | Write-Host
 
         # Display success message box to the user.
         Get-Messagebox

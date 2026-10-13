@@ -15,10 +15,10 @@ $IconsDir    = Join-Path -Path $env:USERPROFILE -ChildPath "Pictures\icons"
 
 
 function Test-Environment {
-    <#
-    .SYNOPSIS
-        Check to see if the script is run with Administrative privileges.
-    #>
+<#
+.SYNOPSIS
+    Check to see if the script is run with Administrative privileges.
+#>
     $CurrentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 
     if (-not $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -31,16 +31,14 @@ function Test-Environment {
 
 
 function Copy-PS1File {
-    <#
-    .SYNOPSIS
-        Copies 'Get-FileHashValue.ps1' and
-        'Get-ForensicHashValues.ps1' files to the
-        '%USERPROFILE%\Documents\WindowsPowerShell' folder.
+<#
+.SYNOPSIS
+    Copies 'Get-FileHashValue.ps1' and 'Get-ForensicHashValues.ps1'
+    files to the '%USERPROFILE%\Documents\WindowsPowerShell' folder.
 
-        If the 'WindowsPowerShell' does not exist, it will
-        be created by this function before the files are
-        copied.
-    #>
+    If the 'WindowsPowerShell' does not exist, it will be created by this
+    function before the files are copied.
+#>
     if (-not (Test-Path -Path $PSScriptDir)) {
         New-Item -Path $PSScriptDir -ItemType Directory -ErrorAction Stop | Out-Null
     }
@@ -50,20 +48,20 @@ function Copy-PS1File {
 
     # Copy 'Get-FileHashValue.ps1' to the WindowsPowerShell directory
     Copy-Item -Path $FileHashScript -Destination $PSScriptDir -Force -ErrorAction Stop
-    Write-Host "[-] File 'Get-FileHashValue.ps1' was copied to $( $PSScriptDir )..." -ForegroundColor Green
+    Write-Host "[-] File [ Get-FileHashValue.ps1 ] was copied to $( $PSScriptDir )..." -ForegroundColor Green
 
     # Copy 'Get-ForensicHashValues.ps1' to the WindowsPowerShell directory
     Copy-Item -Path $ForensicFileHashScript -Destination $PSScriptDir -Force -ErrorAction Stop
-    Write-Host "[-] File 'Get-ForensicHashValues.ps1' was copied to $( $PSScriptDir )..." -ForegroundColor Green
+    Write-Host "[-] File [ Get-ForensicHashValues.ps1 ] was copied to $( $PSScriptDir )..." -ForegroundColor Green
 }
 
 
 function Copy-Icons {
-    <#
-    .SYNOPSIS
-        Copies the three .ico files to the '%USERPROFILE%\Pictures\icons'
-        folder. If the folder does not exist, it will be created.
-    #>
+<#
+.SYNOPSIS
+    Copies the three .ico files to the '%USERPROFILE%\Pictures\icons'
+    folder. If the folder does not exist, it will be created.
+#>
     process {
         if (-not (Test-Path -Path $IconsDir)) {
             New-Item -Path $IconsDir -ItemType Directory -ErrorAction Stop | Out-Null
@@ -75,17 +73,17 @@ function Copy-Icons {
         # Copy each .ico file to the 'icons' directory
         foreach ($File in $Images) {
             Copy-Item -Path $File.FullName -Destination $IconsDir -Force -ErrorAction Stop
-            Write-Host "[-] Copied $( $File.Name ) to $( $IconsDir )..." -ForegroundColor Cyan
+            Write-Host "[-] Copied [ $( $File.Name ) ] to $( $IconsDir )..." -ForegroundColor Cyan
         }
     }
 }
 
 
 function Import-HKCR {
-    <#
-    .SYNOPSIS
-        Import the HKEY_CLASSES_ROOT registry hive if not already done.
-    #>
+<#
+.SYNOPSIS
+    Import the HKEY_CLASSES_ROOT registry hive if not already done.
+#>
     process {
         try {
             if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
@@ -97,7 +95,7 @@ function Import-HKCR {
             }
         }
         catch {
-            $ErrorMsg = "[!] An unknown error occurred when running '$( $MyInvocation.MyCommand.Name )'. Error => $( $_.Exception.Message )."
+            $ErrorMsg = "[!] An unknown error occurred when running [ $( $MyInvocation.MyCommand.Name ) ]. Error => $( $_.Exception.Message )."
             Write-Host "$ErrorMsg" -ForegroundColor Red
         }
     }
@@ -268,7 +266,7 @@ function Invoke-RegistryEdits {
                 $CurrentKey = $RegistryHive.CreateSubKey($CleanPath)
             }
             catch {
-                throw "[!] Failed to create path => '$CleanPath'. Details: $( $_ )."
+                throw "[!] Failed to create path => [ $CleanPath ]. Details => $( $_ )."
             }
 
             foreach ($PropName in $Entries.Keys) {
@@ -298,11 +296,11 @@ function Invoke-RegistryEdits {
 
 
 function Add-FileExtAssociation {
-    <#
-    .SYNOPSIS
-        Registers and forces .MD5, .SHA1, .SHA256, and .SHA512 extensions
-        to open automatically using Notepad++.
-    #>
+<#
+.SYNOPSIS
+    Registers and forces .MD5, .SHA1, .SHA256, and .SHA512 extensions
+    to open automatically using Notepad++.
+#>
     begin {
         Write-Host "[-] Configuring Notepad++ file associations..." -ForegroundColor Green
 
@@ -334,7 +332,7 @@ function Add-FileExtAssociation {
             throw "[!] Notepad++ was not detected on this machine. Please verify it is installed."
         }
 
-        Write-Host "[+] Found Notepad++ executable at: $NppPath" -ForegroundColor Cyan
+        Write-Host "[+] Found Notepad++ executable at => $NppPath" -ForegroundColor Cyan
 
         # Map out the standard Open Execution verb structure for our
         # custom ProgID.

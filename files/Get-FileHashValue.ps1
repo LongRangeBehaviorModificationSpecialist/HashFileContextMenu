@@ -30,19 +30,17 @@ function Get-UtcTime {
     }
 
     $UtcTime = $((Get-Date).ToUniversalTime().ToString($TimeFormat))
-    
+
     return $UtcTime
 }
 
 
-
-
 function Get-FormattedFileSize {
-    <#
-    .SYNOPSIS
-        Function to format the size of the file to match the formatting in
-        the Windows File Explorer.
-    #>
+<#
+.SYNOPSIS
+    Function to format the size of the file to match the formatting in
+    the Windows File Explorer.
+#>
     [CmdletBinding()]
     [OutputType([string])]
 
@@ -53,7 +51,7 @@ function Get-FormattedFileSize {
 
     begin {
         if (-not (Test-Path -Path $Path -PathType Leaf)) {
-            throw "File not found: $Path."
+            throw "File not found => $Path."
         }
     }
     process {
@@ -79,22 +77,22 @@ function Get-FormattedFileSize {
 
 
 function Get-Messagebox {
-    <#
-    .SYNOPSIS
-        Shows message box when hashing is complete.
-    #>
+<#
+.SYNOPSIS
+    Shows message box when hashing is complete.
+#>
     process {
-        $MsgText = "Hashing of $( $File.Name ) is complete.`n`nThe verification file is: '$(Split-Path $OutputFile -Leaf)'`n`nSaved in: $( $ParentDir )"
+        $MsgText = "Hashing of $( $File.Name ) is complete.`n`nThe verification file is [ $(Split-Path $OutputFile -Leaf) ]`n`nSaved in => $( $ParentDir )"
         [System.Windows.Forms.MessageBox]::Show($MsgText, "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
     }
 }
 
 
 function Write-FileHashToFile {
-    <#
-    .SYNOPSIS
-        Hashes selected file and writes output to seperate file.
-    #>
+<#
+.SYNOPSIS
+    Hashes selected file and writes output to seperate file.
+#>
     process {
         # Get the file to be hashed.
         $File = Get-Item -LiteralPath $InputFilePath
