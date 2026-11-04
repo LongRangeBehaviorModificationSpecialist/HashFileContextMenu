@@ -10,15 +10,15 @@ else {
 }
 
 # Define Destination Paths
-$PSScriptDir = Join-Path -Path $env:USERPROFILE -ChildPath "Documents\WindowsPowerShell"
+$PSModuleDir = Join-Path -Path $env:USERPROFILE -ChildPath "Documents\WindowsPowerShell\Modules\FileHashTools"
 $IconsDir    = Join-Path -Path $env:USERPROFILE -ChildPath "Pictures\icons"
 
 
 function Test-Environment {
-<#
-.SYNOPSIS
-    Check to see if the script is run with Administrative privileges.
-#>
+    <#
+    .SYNOPSIS
+        Check to see if the script is run with Administrative privileges.
+    #>
     $CurrentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 
     if (-not $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -30,60 +30,62 @@ function Test-Environment {
 }
 
 
-function Copy-PS1File {
-<#
-.SYNOPSIS
-    Copies 'Get-FileHashValue.ps1' and 'Get-ForensicHashValues.ps1'
-    files to the '%USERPROFILE%\Documents\WindowsPowerShell' folder.
+function Copy-PSFiles {
+    <#
+    .SYNOPSIS
+        Copies the shared module and worker script to the user's PowerShell profile directory.
 
-    If the 'WindowsPowerShell' does not exist, it will be created by this
-    function before the files are copied.
-#>
-    if (-not (Test-Path -Path $PSScriptDir)) {
-        New-Item -Path $PSScriptDir -ItemType Directory -ErrorAction Stop | Out-Null
+        If the 'WindowsPowerShell' does not exist, it will be created by this
+        function before the files are copied.
+    #>
+    if (-not (Test-Path -Path $PSModuleDir)) {
+        New-Item -Path $PSModuleDir -ItemType Directory -ErrorAction Stop | Out-Null
     }
 
-    $FileHashScript = Join-Path -Path $Root -ChildPath "files\Get-FileHashValue.ps1"
-    $ForensicFileHashScript = Join-Path -Path $Root -ChildPath "files\Get-ForensicHashValues.ps1"
+    $ModulePsm1 = Join-Path -Path $Root -ChildPath "files\FileHashTools.psm1"
+    $ModulePsd1 = Join-Path -Path $Root -ChildPath "files\FileHashTools.psd1"
+    $WorkerFile = Join-Path -Path $Root -ChildPath "files\Invoke-FileHashReport.ps1"
 
-    # Copy 'Get-FileHashValue.ps1' to the WindowsPowerShell directory
-    Copy-Item -Path $FileHashScript -Destination $PSScriptDir -Force -ErrorAction Stop
-    Write-Host "[-] File [ Get-FileHashValue.ps1 ] was copied to $( $PSScriptDir )..." -ForegroundColor Green
+    # Copy module files into Modules\FileHashTools\
+    Copy-Item -Path $ModulePsm1 -Destination $PSModuleDir -Force -ErrorAction Stop
+    Write-Host "[-] Copied [ $( Split-Path $ModulePsm1 -Leaf ) ] to $( $PSModuleDir )..." -ForegroundColor Green
 
-    # Copy 'Get-ForensicHashValues.ps1' to the WindowsPowerShell directory
-    Copy-Item -Path $ForensicFileHashScript -Destination $PSScriptDir -Force -ErrorAction Stop
-    Write-Host "[-] File [ Get-ForensicHashValues.ps1 ] was copied to $( $PSScriptDir )..." -ForegroundColor Green
+    Copy-Item -Path $ModulePsd1 -Destination $PSModuleDir -Force -ErrorAction Stop
+    Write-Host "[-] Copied [ $( Split-Path $ModulePsd1 -Leaf ) ] to $( $PSModuleDir )..." -ForegroundColor Green
+
+    # Copy worker script file
+    Copy-Item -Path $WorkerFile -Destination $PSModuleDir -Force -ErrorAction Stop
+    Write-Host "[-] Copied [ $( Split-Path $WorkerFile -Leaf ) ] to $( $PSModuleDir )..." -ForegroundColor Green
+
 }
 
 
 function Copy-Icons {
-<#
-.SYNOPSIS
-    Copies the three .ico files to the '%USERPROFILE%\Pictures\icons'
-    folder. If the folder does not exist, it will be created.
-#>
-    process {
-        if (-not (Test-Path -Path $IconsDir)) {
-            New-Item -Path $IconsDir -ItemType Directory -ErrorAction Stop | Out-Null
-        }
+    <#
+    .SYNOPSIS
+        Copies the three .ico files to the '%USERPROFILE%\Pictures\icons' folder. If the folder does not exist,
+        it will be created.
+    #>
+    if (-not (Test-Path -Path $IconsDir)) {
+        New-Item -Path $IconsDir -ItemType Directory -ErrorAction Stop | Out-Null
+    }
 
-        $ImageFolder = Join-Path -Path $Root -ChildPath "img"
-        $Images      = Get-ChildItem -Path $ImageFolder -File -Filter *.ico
-
-        # Copy each .ico file to the 'icons' directory
+    $ImageFolder = Join-Path -Path $Root -ChildPath "img"
+    if (Test-Path -Path $ImageFolder) {
+        $Images = Get-ChildItem -Path $ImageFolder -File -Filter *.ico
         foreach ($File in $Images) {
             Copy-Item -Path $File.FullName -Destination $IconsDir -Force -ErrorAction Stop
-            Write-Host "[-] Copied [ $( $File.Name ) ] to $( $IconsDir )..." -ForegroundColor Cyan
+            Write-Host "[-] Copied [ $( $File.Name ) ] to $( $IconsDir )..." -ForegroundColor Green
         }
     }
 }
 
 
 function Import-HKCR {
-<#
-.SYNOPSIS
-    Import the HKEY_CLASSES_ROOT registry hive if not already done.
-#>
+    <#
+    .SYNOPSIS
+        Import the HKEY_CLASSES_ROOT registry hive if not already done.
+    #>
     process {
         try {
             if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
@@ -119,7 +121,7 @@ function Invoke-RegistryEdits {
 
             "Software\Classes\*\shell\GetFileHash\shell\004n6" = @{
                 "Icon"        = ("ExpandString", '%USERPROFILE%\Pictures\icons\terminal.ico')
-                "MUIVerb"     = ("String", "Forensic")
+                "MUIVerb"     = ("String", "Forensic (All Hashes)")
                 "SubCommands" = ("String", "")
             }
 
@@ -133,7 +135,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\004n6\shell\004n6-ToFile\command" = @{
-                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Get-ForensicHashValues.ps1" "%L"')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1" -FilePath "%L" -Algorithm All')
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5" = @{
@@ -152,7 +154,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToFile\command" = @{
-                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Get-FileHashValue.ps1" "%L" MD5')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1" -FilePath "%L" -Algorithm MD5')
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToScreen" = @{
@@ -161,7 +163,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\01MD5\shell\MD5-ToScreen\command" = @{
-                "" = ("String", 'powershell.exe -NoExit -ExecutionPolicy Bypass -Command "Get-FileHash -Path \"%L\" -Algorithm MD5 | Format-List"')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -Command "& \"%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1\" -FilePath \"%L\" -Algorithm MD5 -PrintToScreen"')
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1" = @{
@@ -180,7 +182,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToFile\command" = @{
-                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Get-FileHashValue.ps1" "%L" SHA1')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1" -FilePath "%L" -Algorithm SHA1')
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToScreen" = @{
@@ -189,7 +191,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\02SHA1\shell\SHA1-ToScreen\command" = @{
-                "" = ("String", 'powershell.exe -NoExit -ExecutionPolicy Bypass -Command "Get-FileHash -Path \"%L\" -Algorithm SHA1 | Format-List"')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -Command "& \"%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1\" -FilePath \"%L\" -Algorithm SHA1 -PrintToScreen"')
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256" = @{
@@ -208,7 +210,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToFile\command" = @{
-                "" = ("ExpandString", 'powershell.exe -NoExit -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Get-FileHashValue.ps1" "%L" SHA256')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1" -FilePath "%L" -Algorithm SHA256')
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToScreen" = @{
@@ -217,7 +219,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\03SHA256\shell\SHA256-ToScreen\command" = @{
-                "" = ("String", 'powershell.exe -NoExit -ExecutionPolicy Bypass -Command "Get-FileHash -Path \"%L\" -Algorithm SHA256 | Format-List"')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -Command "& \"%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1\" -FilePath \"%L\" -Algorithm SHA256 -PrintToScreen"')
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512" = @{
@@ -236,7 +238,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToFile\command" = @{
-                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Get-FileHashValue.ps1" "%L" SHA512')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1" -FilePath "%L" -Algorithm SHA512')
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToScreen" = @{
@@ -245,7 +247,7 @@ function Invoke-RegistryEdits {
             }
 
             "Software\Classes\*\shell\GetFileHash\shell\04SHA512\shell\SHA512-ToScreen\command" = @{
-                "" = ("String", 'powershell.exe -NoExit -ExecutionPolicy Bypass -Command "Get-FileHash -Path \"%L\" -Algorithm SHA512 | Format-List"')
+                "" = ("ExpandString", 'powershell.exe -NoExit -ExecutionPolicy Bypass -Command "& \"%USERPROFILE%\Documents\WindowsPowerShell\Modules\FileHashTools\Invoke-FileHashReport.ps1\" -FilePath \"%L\" -Algorithm SHA512 -PrintToScreen"')
             }
         }
     }
@@ -272,21 +274,21 @@ function Invoke-RegistryEdits {
             foreach ($PropName in $Entries.Keys) {
                 $PropType, $PropValue = $Entries[$PropName]
 
-                # Map your custom strings cleanly to
-                # [Microsoft.Win32.RegistryValueKind] enums.
+                # Map your custom strings cleanly to [Microsoft.Win32.RegistryValueKind] enums.
                 $ValueKind = if ($PropType -eq "ExpandString") {
                     [Microsoft.Win32.RegistryValueKind]::ExpandString
                 }
                 else {
                     [Microsoft.Win32.RegistryValueKind]::String
                 }
-
                 # Set value natively
                 $CurrentKey.SetValue($PropName, $PropValue, $ValueKind)
             }
 
             # Safely close the unmanaged memory pointer handler.
-            if ($CurrentKey) { $CurrentKey.Close() }
+            if ($CurrentKey) {
+                $CurrentKey.Close()
+            }
             Write-Host "[+] Applied configuration to $SubKeyPath" -ForegroundColor Cyan
         }
 
@@ -296,11 +298,11 @@ function Invoke-RegistryEdits {
 
 
 function Add-FileExtAssociation {
-<#
-.SYNOPSIS
-    Registers and forces .MD5, .SHA1, .SHA256, and .SHA512 extensions
-    to open automatically using Notepad++.
-#>
+    <#
+    .SYNOPSIS
+        Registers and forces .MD5, .SHA1, .SHA256, and .SHA512 extensions
+        to open automatically using Notepad++.
+    #>
     begin {
         Write-Host "[-] Configuring Notepad++ file associations..." -ForegroundColor Green
 
@@ -334,8 +336,7 @@ function Add-FileExtAssociation {
 
         Write-Host "[+] Found Notepad++ executable at => $NppPath" -ForegroundColor Cyan
 
-        # Map out the standard Open Execution verb structure for our
-        # custom ProgID.
+        # Map out the standard Open Execution verb structure for our custom ProgID.
         # The '"%1"' variable tells Windows to pass the target file
         # path directly into the application space.
         $AssociationMap = [ordered]@{
@@ -388,7 +389,7 @@ function Add-FileExtAssociation {
 try {
     Write-Host "[-] Starting Setup..." -ForegroundColor Cyan
     Test-Environment
-    Copy-PS1File
+    Copy-PSFiles
     Copy-Icons
     # Import-HKCR
     Invoke-RegistryEdits
