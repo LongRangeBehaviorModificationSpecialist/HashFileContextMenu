@@ -1,25 +1,31 @@
 <#
 .SYNOPSIS
-    Shared helper module containing high-performance stream hashing and formatting utilities.
+    Shared helper module containing high-performance stream hashing and
+    formatting utilities.
 #>
 
 function Get-UtcTime {
     <#
     .SYNOPSIS
-        Returns the current UTC date and time as a string in one of two formats.
+        Returns the current UTC date and time as a string in one of two
+        formats.
 
     .DESCRIPTION
-        Gets the current time in UTC and formats it as text. The invariant culture is always used, so
-        the separators in the result never change with the computer's regional settings. Two formats
-        are supported:
+        Gets the current time in UTC and formats it as text.  The invariant
+        culture is always used, so the separators in the result never change
+        with the computer's regional settings.  Two formats are supported:
 
-            DISPLAY   ISO 8601 style with milliseconds, for console and log lines.
-                      Example: 2026-11-04T14:30:15.123Z
-            FILE      Safe for use in file names (no colons), second resolution.
-                      Example: 2026-11-04_14.30.15
+            DISPLAY :   ISO 8601 style with milliseconds, for console and
+                        log lines.
+                        Example: 2026-11-04T14:30:15.123Z
+
+            FILE    :   Safe for use in file names (no colons), second
+                        resolution.
+                        Example: 2026-11-04_14.30.15
 
     .PARAMETER Format
-        The output style. This parameter is mandatory. Valid values are "FILE" and "DISPLAY".
+        The output style.  This parameter is mandatory.  Valid values are
+        "FILE" and "DISPLAY".
 
     .EXAMPLE
         Get-UtcTime -Format DISPLAY
@@ -29,22 +35,23 @@ function Get-UtcTime {
     .EXAMPLE
         $OutputFile = "Evidence.E01_$( Get-UtcTime -Format FILE ).SHA256"
 
-        Builds a file name that contains a UTC time stamp: Evidence.E01_2026-11-04_14.30.15.SHA256
+        Builds a file name that contains a UTC time stamp:
+            Evidence.E01_2026-11-04_14.30.15.SHA256
 
     .INPUTS
-        None. This function does not accept pipeline input.
+        None.  This function does not accept pipeline input.
 
     .OUTPUTS
-        System.String. The formatted UTC date and time.
+        System.String.  The formatted UTC date and time.
 
     .NOTES
-        The time is read at the moment of the call, so two calls made one after the other can return
-        different values.
+        The time is read at the moment of the call, so two calls made one
+        after the other can return different values.
     #>
     [CmdletBinding()]
     [OutputType([string])]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [ValidateSet("FILE", "DISPLAY")]
         [string]$Format
     )
@@ -54,36 +61,42 @@ function Get-UtcTime {
         "FILE"    { "yyyy-MM-dd_HH.mm.ss" }
     }
 
-    [datetime]::UtcNow.ToString($TimeFormat, [System.Globalization.CultureInfo]::InvariantCulture)
+    [datetime]::UtcNow.ToString(
+        $TimeFormat,
+        [System.Globalization.CultureInfo]::InvariantCulture
+    )
 }
 
 
 function Get-FormattedFileSize {
     <#
     .SYNOPSIS
-        Returns a size in bytes as readable text, showing the rounded size and the exact byte count.
+        Returns a size in bytes as readable text, showing the rounded size
+        and the exact byte count.
 
     .DESCRIPTION
-        Chooses the largest unit (TB, GB, MB or KB) that fits, using 1024-based units like Windows File
-        Explorer. The rounded value is shown with two decimal places, followed by the exact byte count
+        Chooses the largest unit (TB, GB, MB or KB) that fits, using
+        1024-based units like Windows File Explorer.  The rounded value is
+        shown with two decimal places, followed by the exact byte count
         with thousands separators. Sizes under 1 KB are shown as plain bytes.
 
-        The size can be supplied directly with -Bytes or looked up from a file with -FilePath. The
-        invariant culture is always used so the text is the same on every computer.
+        The size can be supplied directly with '-Bytes' or looked up from a
+        file with -FilePath.  The invariant culture is always used so the text
+        is the same on every computer.
 
         Example result: 1.50 MB (1,572,864 bytes)
 
-        A value that would round up to 1,024.00 of a unit (for example 1,048,575 bytes) is shown in
-        the next larger unit instead.
+        A value that would round up to 1,024.00 of a unit (for example
+        1,048,575 bytes) is shown in the next larger unit instead.
 
     .PARAMETER FilePath
-        Path to the file whose size should be formatted. The path is used literally (wildcard
-        characters such as [ ] are not expanded) and must point to an existing file, otherwise a
-        terminating error is thrown.
+        Path to the file whose size should be formatted.  The path is used
+        literally (wildcard characters such as [ ] are not expanded) and must
+        point to an existing file, otherwise a terminating error is thrown.
 
     .PARAMETER Bytes
-        The size in bytes. Use this when the size is already known (for example $File.Length) to avoid
-        a second file lookup.
+        The size in bytes. Use this when the size is already known (for
+        example $File.Length) to avoid a second file lookup.
 
     .EXAMPLE
         Get-FormattedFileSize -FilePath "C:\Evidence\memory.raw"
@@ -101,21 +114,23 @@ function Get-FormattedFileSize {
         Returns "512 bytes".
 
     .INPUTS
-        None. This function does not accept pipeline input.
+        None.  This function does not accept pipeline input.
 
     .OUTPUTS
-        System.String. The formatted size.
+        System.String.  The formatted size.
 
     .NOTES
-        Units are 1024-based (KB = 1,024 bytes), matching Windows File Explorer.
+        Units are 1024-based (KB = 1,024 bytes), matching Windows File
+        Explorer.
     #>
     [CmdletBinding(DefaultParameterSetName = "ByPath")]
     [OutputType([string])]
     param (
-        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = "ByPath")]
+        [Parameter(Mandatory, Position = 0, ParameterSetName = "ByPath")]
+        [ValidateNotNullOrEmpty()]
         [string]$FilePath,
 
-        [Parameter(Mandatory = $true, ParameterSetName = "ByBytes")]
+        [Parameter(Mandatory, ParameterSetName = "ByBytes")]
         [ValidateRange(0, [long]::MaxValue)]
         [long]$Bytes
     )
@@ -133,7 +148,8 @@ function Get-FormattedFileSize {
         return [string]::Format($Inv, "{0:N0} bytes", $Bytes)
     }
 
-    # Divide by 1024 until the rounded value is below 1,024 (or the largest unit is reached)
+    # Divide by 1,024 until the rounded value is below 1,024 (or the largest
+    # unit is reached)
     $Units = "KB", "MB", "GB", "TB"
     $Size  = [double]$Bytes
     $Index = -1
@@ -142,53 +158,66 @@ function Get-FormattedFileSize {
         $Index++
     } while ([math]::Round($Size, 2) -ge 1024 -and $Index -lt ($Units.Count - 1))
 
-    return [string]::Format($Inv, "{0:N2} {1} ({2:N0} bytes)", $Size, $Units[$Index], $Bytes)
+    return [string]::Format(
+        $Inv,
+        "{0:N2} {1} ({2:N0} bytes)",
+        $Size,
+        $Units[$Index],
+        $Bytes
+    )
 }
 
 
 function Show-MessageBox {
     <#
     .SYNOPSIS
-        Shows a formatted completion dialog (bold headings, colored title, monospaced values).
+        Shows a formatted completion dialog (bold headings, colored title,
+        monospaced values).
 
     .DESCRIPTION
-        Replacement for the standard message box version of Show-MessageBox. The built-in Windows
-        message box can only show plain text, so this version builds a small custom dialog with a
-        read-only RichTextBox, which supports fonts, bold text, sizes and colors. The text can also be
-        selected and copied by the user.
+        Replacement for the standard message box version of 'Show-MessageBox'.
+        The built-in Windows message box can only show plain text, so this
+        version builds a small custom dialog with a read-only RichTextBox,
+        which supports fonts, bold text, sizes and colors.  The text can also
+        be selected and copied by the user.
 
-        If the session is not interactive (for example a scheduled task or a service), nothing is
-        shown and the function returns without error.
+        If the session is not interactive (for example a scheduled task or
+        a service), nothing is shown and the function returns without error.
 
     .PARAMETER FileName
         The name of the file that was hashed (name only, no folder).
 
     .PARAMETER VerificationFilePath
-        The full path of the verification file. The file name and the folder shown in the dialog are
-        taken from this path.
+        The full path of the verification file.  The file name and the folder
+        shown in the dialog are taken from this path.
 
     .PARAMETER Title
-        The title bar text of the dialog. The default is "Success".
+        The title bar text of the dialog.  The default is "Success".
 
     .EXAMPLE
-        Show-MessageBox -FileName "Laptop01.E01" -VerificationFilePath "D:\Evidence\Laptop01.E01_2026-11-04_14.30.15.SHA256"
+        Show-MessageBox `
+            -FileName "drive.E01" -VerificationFilePath `
+            "D:\Evidence\drive.E01_2026-11-04_14.30.15.SHA256"
 
     .INPUTS
-        None. This function does not accept pipeline input.
+        None.  This function does not accept pipeline input.
 
     .OUTPUTS
         None.
 
     .NOTES
-        Requires Windows and an interactive desktop session. The function waits until the user clicks OK.
+        Requires Windows and an interactive desktop session.  The function
+        waits until the user clicks "OK".
     #>
     [CmdletBinding()]
     [OutputType([void])]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
         [string]$FileName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
         [string]$VerificationFilePath,
 
         [string]$Title = "Success"
@@ -209,16 +238,16 @@ function Show-MessageBox {
     # Fonts and colors used in the custom dialog box
     $Bold = [System.Drawing.FontStyle]::Bold
     $Fonts = @{
-        Heading = [System.Drawing.Font]::new("Segoe UI", 14, $Bold)
-        Label   = [System.Drawing.Font]::new("Segoe UI", 10, $Bold)
-        Value   = [System.Drawing.Font]::new("Consolas", 10)
-        Normal  = [System.Drawing.Font]::new("Segoe UI", 10)
+        Heading = [System.Drawing.Font]::New("Segoe UI", 14, $Bold)
+        Label   = [System.Drawing.Font]::New("Segoe UI", 10, $Bold)
+        Value   = [System.Drawing.Font]::New("Consolas", 10)
+        Normal  = [System.Drawing.Font]::New("Segoe UI", 10)
     }
 
     $Blue  = [System.Drawing.Color]::FromArgb(21, 93, 252)
     $Black = [System.Drawing.Color]::Black
 
-    $Form = [System.Windows.Forms.Form]::new()
+    $Form = [System.Windows.Forms.Form]::New()
     try {
         $Form.Text            = $Title
         $Form.StartPosition   = "CenterScreen"
@@ -226,20 +255,21 @@ function Show-MessageBox {
         $Form.MaximizeBox     = $false
         $Form.MinimizeBox     = $false
         $Form.TopMost         = $true
-        $Form.ClientSize      = [System.Drawing.Size]::new(560, 260)
+        $Form.ClientSize      = [System.Drawing.Size]::New(560, 260)
 
 
-        $Rtb             = [System.Windows.Forms.RichTextBox]::new()
+        $Rtb             = [System.Windows.Forms.RichTextBox]::New()
         $Rtb.ReadOnly    = $true
         $Rtb.BorderStyle = "None"
         $Rtb.BackColor   = $Form.BackColor
         $Rtb.DetectUrls  = $false
         $Rtb.TabStop     = $false
-        $Rtb.Location    = [System.Drawing.Point]::new(15, 15)
-        $Rtb.Size        = [System.Drawing.Size]::new(530, 195)
+        $Rtb.Location    = [System.Drawing.Point]::New(15, 15)
+        $Rtb.Size        = [System.Drawing.Size]::New(530, 195)
 
 
-        # Appends text to the end of the RichTextBox using the given font and color
+        # Appends text to the end of the RichTextBox using the given
+        # font and color
         $AddText = {
             param(
                 [string]$Text,
@@ -263,11 +293,11 @@ function Show-MessageBox {
 
         $Rtb.SelectionStart = 0   # keep the view at the top
 
-        $Button              = [System.Windows.Forms.Button]::new()
+        $Button              = [System.Windows.Forms.Button]::New()
         $Button.Text         = "OK"
         $Button.DialogResult = [System.Windows.Forms.DialogResult]::OK
-        $Button.Size         = [System.Drawing.Size]::new(85, 30)
-        $Button.Location     = [System.Drawing.Point]::new(460, 218)
+        $Button.Size         = [System.Drawing.Size]::New(85, 30)
+        $Button.Location     = [System.Drawing.Point]::New(460, 218)
 
         $Form.AcceptButton = $Button
         $Form.Controls.AddRange(@($Rtb, $Button))
@@ -287,22 +317,24 @@ function Format-Duration {
         Converts a TimeSpan into short, readable text for console messages.
 
     .DESCRIPTION
-        The layout depends on the length of the time span. The invariant culture is always used so
-        the output is the same on every computer.
+        The layout depends on the length of the time span.  The invariant
+        culture is always used so the output is the same on every computer.
 
             Under 1 minute    "12.50 seconds"
             Under 1 hour      "5 min 07 sec"
             1 hour or more    "2 hr 05 min 09 sec"
 
-        Seconds are shown with two decimal places only for spans under one minute. Longer spans
-        show whole minutes and seconds (fractions of a second are dropped, not rounded).
+        Seconds are shown with two decimal places only for spans under
+        one minute.  Longer spans show whole minutes and seconds (fractions
+        of a second are dropped, not rounded).
 
     .PARAMETER Span
-        The elapsed time to format, for example the Elapsed value of a Stopwatch. This parameter
-        is mandatory.
+        The elapsed time to format, for example the Elapsed value of
+        a Stopwatch.  This parameter is mandatory.
 
     .EXAMPLE
         Format-Duration -Span (New-TimeSpan -Seconds 75)
+
         Returns "1 min 15 sec".
 
     .EXAMPLE
@@ -318,10 +350,10 @@ function Format-Duration {
         Returns a string such as "3.01 seconds".
 
     .INPUTS
-        None. This function does not accept pipeline input.
+        None.  This function does not accept pipeline input.
 
     .OUTPUTS
-        System.String. The formatted duration.
+        System.String.  The formatted duration.
     #>
     [CmdletBinding()]
     [OutputType([System.String])]
@@ -330,42 +362,55 @@ function Format-Duration {
         [TimeSpan]$Span
     )
 
-    begin {
-        $Inv = [System.Globalization.CultureInfo]::InvariantCulture
-    }
-    process {
-        if ($Span.TotalSeconds -lt 60) {
-            return [string]::Format($Inv, "{0:N2} seconds", $Span.TotalSeconds)
-        }
+    $Inv = [System.Globalization.CultureInfo]::InvariantCulture
 
-        if ($Span.TotalHours -lt 1) {
-            return [string]::Format($Inv, "{0} min {1:00} sec", $Span.Minutes, $Span.Seconds)
-        }
-
-        [string]::Format(
-            $Inv, "{0} hr {1:00} min {2:00} sec", `
-            [int][math]::Floor($Span.TotalHours), $Span.Minutes, $Span.Seconds
+    if ($Span.TotalSeconds -lt 60) {
+        return [string]::Format(
+            $Inv,
+            "{0:N2} seconds",
+            $Span.TotalSeconds
         )
     }
+
+    if ($Span.TotalHours -lt 1) {
+        return [string]::Format(
+            $Inv,
+            "{0} min {1:00} sec",
+            $Span.Minutes,
+            $Span.Seconds
+        )
+    }
+
+    [string]::Format(
+        $Inv,
+        "{0} hr {1:00} min {2:00} sec", `
+        [int][math]::Floor($Span.TotalHours),
+        $Span.Minutes,
+        $Span.Seconds
+    )
 }
 
 
 function Get-MultiFileHash {
     <#
     .SYNOPSIS
-        Calculates the MD5, SHA1 and SHA256 hashes of a file in a single read pass.
+        Calculates the MD5, SHA1 and SHA256 hashes of a file in a single read
+        pass.
 
     .DESCRIPTION
-        Opens the file once for sequential, read-only access and reads it in 80 KB blocks. Each block
-        is passed to the MD5, SHA1 and SHA256 algorithms, so the file is read from disk only once
-        instead of three times (as would happen with three calls to Get-FileHash).
+        Opens the file once for sequential, read-only access and reads it in
+        80 KB blocks.  Each block is passed to the MD5, SHA1 and SHA256
+        algorithms, so the file is read from disk only once instead of three
+        times (as would happen with three calls to 'Get-FileHash').
 
-        The path is converted to a full path first. If the file does not exist, a terminating error
-        is thrown. The file stream and the hash objects are always disposed, even when an error occurs.
+        The path is converted to a full path first.  If the file does not
+        exist, a terminating error is thrown.  The file stream and the hash
+        objects are always disposed, even when an error occurs.
 
     .PARAMETER FilePath
-        Path to the file to hash. Wildcards are not supported. A relative path is resolved against
-        the process working directory, which may differ from the current PowerShell location.
+        Path to the file to hash. Wildcards are not supported.  A relative
+        path is resolved against the process working directory, which may
+        differ from the current PowerShell location.
 
     .EXAMPLE
         Get-MultiFileHash -FilePath "D:\Evidence\Laptop01.E01"
@@ -378,7 +423,7 @@ function Get-MultiFileHash {
         Returns only the SHA256 hash as an uppercase hexadecimal string.
 
     .INPUTS
-        None. This function does not accept pipeline input.
+        None.  This function does not accept pipeline input.
 
     .OUTPUTS
         System.Management.Automation.PSCustomObject with these properties:
@@ -388,28 +433,34 @@ function Get-MultiFileHash {
             SHA256  64-character uppercase hexadecimal string.
 
     .NOTES
-        The file is opened with FileShare.Read, so the function fails if another process has the file
-        open for writing.
+        The file is opened with FileShare.Read, so the function fails if
+        another process has the file open for writing.
+
         Hash values contain no dashes and are uppercase.
     #>
     [CmdletBinding()]
     [OutputType([System.Management.Automation.PSCustomObject])]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$FilePath,
 
         [switch]$AllowSharedWrite
     )
 
-    # Resolve against the PowerShell location (not [Environment]::CurrentDirectory). The path is
-    # treated literally, so wildcard characters such as [ ] in file names are not expanded.
+    <#
+    Resolve against the PowerShell location (
+    not [Environment]::CurrentDirectory).  The path is treated literally,
+    so wildcard characters such as "[" or "]" in file names are not
+    expanded.
+    #>
     $ResolvedPath =$PSCmdlet.GetUnresolvedProviderPathFromPSPath($FilePath)
     if (-not (Test-Path -LiteralPath $ResolvedPath -PathType Leaf)) {
         throw "File not found: $ResolvedPath"
     }
 
-    # Open a single FileStream with sequential scan optimization and an 4MB buffer
+    # Open a single FileStream with sequential scan optimization and
+    # an 4 MB buffer
     $BufferSize = 4MB
     $ShareMode  = if ($AllowSharedWrite) {
         [System.IO.FileShare]::ReadWrite
@@ -425,8 +476,11 @@ function Get-MultiFileHash {
     $Sha512     = $null
 
     try {
-        # Open a single FileStream with the sequential scan hint. The FileStream's internal buffer is
-        # disabled (bufferSize = 1) because the data is read in large blocks into our own buffer.
+        <#
+        Open a single FileStream with the sequential scan hint.  The
+        FileStream's internal buffer is disabled (bufferSize = 1)
+        because the data is read in large blocks into our own buffer.
+        #>
         $FileStream = [System.IO.FileStream]::new(
             $ResolvedPath,
             [System.IO.FileMode]::Open,
@@ -444,8 +498,11 @@ function Get-MultiFileHash {
 
         $Buffer = [byte[]]::new($BufferSize)
 
-        # Read the file block-by-block and feed all three hashes. Passing $null as the output buffer
-        # stops .NET from copying every block onto itself.
+        <#
+        Read the file block-by-block and feed all three hashes. Passing
+        '$null' as the output buffer stops .NET from copying every block
+        onto itself.
+        #>
         while (($BytesRead = $FileStream.Read($Buffer, 0, $Buffer.Length)) -gt 0) {
             $null = $Md5.TransformBlock($Buffer, 0, $BytesRead, $null, 0)
             $null = $Sha1.TransformBlock($Buffer, 0, $BytesRead, $null, 0)
@@ -477,4 +534,3 @@ function Get-MultiFileHash {
         if ($Sha512)     { $Sha512.Dispose() }
     }
 }
-
