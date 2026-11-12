@@ -33,10 +33,10 @@ function Get-UtcTime {
         Returns a string such as 2026-11-04T14:30:15.123Z.
 
     .EXAMPLE
-        $OutputFile = "Evidence.E01_$( Get-UtcTime -Format FILE ).SHA256"
+        $OutputFile = "Evidence.E01_$( Get-UtcTime -Format FILE )_SHA256.txt"
 
         Builds a file name that contains a UTC time stamp:
-            Evidence.E01_2026-11-04_14.30.15.SHA256
+            Evidence.E01_2026-11-04_14.30.15_SHA256.txt
 
     .INPUTS
         None.  This function does not accept pipeline input.
@@ -145,7 +145,11 @@ function Get-FormattedFileSize {
     $Inv = [System.Globalization.CultureInfo]::InvariantCulture
 
     if ($Bytes -lt 1KB) {
-        return [string]::Format($Inv, "{0:N0} bytes", $Bytes)
+        return [string]::Format(
+            $Inv,
+            "{0:N0} bytes",
+            $Bytes
+        )
     }
 
     # Divide by 1,024 until the rounded value is below 1,024 (or the largest

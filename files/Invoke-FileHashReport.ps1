@@ -7,10 +7,10 @@
 #Requires -Version 5.1
 
 Param(
-    [Parameter(Position = 0, Mandatory = $true)]
+    [Parameter(Position = 0, Mandatory)]
     [string]$FilePath,
 
-    [Parameter(Position = 1, Mandatory = $false)]
+    [Parameter(Position = 1)]
     [ValidateSet("MD5", "SHA1", "SHA256", "SHA512", "All")]
     [string]$Algorithm = "All",
 
@@ -29,8 +29,15 @@ $FileSize   = Get-FormattedFileSize -Bytes $File.Length
 
 # If printing to screen, we don't need to generate a verification file path or write to disk
 if (-not $PrintToScreen) {
-    $FileExt = if ($Algorithm -eq "All") { "SHA256" } else { $Algorithm }
-    $OutputFile = Join-Path -Path $ParentDir -ChildPath "$( $File.Name )_$( Get-UtcTime -Format FILE ).$FileExt"
+    $HashType = if ($Algorithm -eq "All") {
+        "SHA256"
+    }
+    else {
+        $Algorithm
+    }
+    $OutputFile = (Join-Path `
+        -Path $ParentDir `
+        -ChildPath "$( $File.Name )_$( Get-UtcTime -Format FILE )_$HashType.txt")
 
     Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Calculating hashes for => $( $File.Name )..." -ForegroundColor Blue
     Write-Host "`n[$( Get-UtcTime -Format DISPLAY )] Results will be saved to => $OutputFile`n" -ForegroundColor Green
@@ -97,7 +104,8 @@ $FieldLines | Write-Host
 Write-Host
 Write-Host "$Completed`n" -ForegroundColor Green
 
-# Display success message box only if it's a file save operation and popups aren't suppressed
+# Display success message box only if it's a file save operation and popups
+# aren't suppressed
 if (-not $PrintToScreen -and -not $NoPopup) {
     try {
         Show-MessageBox -FileName $File.Name -VerificationFilePath $OutputFile

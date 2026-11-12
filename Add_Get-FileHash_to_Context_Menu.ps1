@@ -94,11 +94,12 @@ function Import-HKCR {
 
     try {
         if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
-            $Null = New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Scope Global
+            $null = New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -Scope Global
             Write-Host "[-] The HKEY_CLASSES_ROOT Path was added to the PSDrive list..." -ForegroundColor Cyan
         }
         else {
-            Write-Host "[-] The HKEY_CLASSES_ROOT Path is already added to the PSDrive list. Continuing with script..." -ForegroundColor Green
+            Write-Host ("[-] The HKEY_CLASSES_ROOT Path is already added to the PSDrive list. " +
+                "Continuing with script...") -ForegroundColor Green
         }
     }
     catch {
@@ -284,7 +285,11 @@ function Invoke-RegistryEdits {
                 [Microsoft.Win32.RegistryValueKind]::String
             }
             # Set value natively
-            $CurrentKey.SetValue($PropName, $PropValue, $ValueKind)
+            $CurrentKey.SetValue(
+                $PropName,
+                $PropValue,
+                $ValueKind
+            )
         }
 
         # Safely close the unmanaged memory pointer handler.
@@ -402,7 +407,7 @@ try {
     Copy-Icons
     # Import-HKCR
     Invoke-RegistryEdits
-    Add-FileExtAssociation
+    # Add-FileExtAssociation
 }
 catch {
     Write-Host "`n[!] ERROR => $( $_.Exception.Message )." -ForegroundColor Red
